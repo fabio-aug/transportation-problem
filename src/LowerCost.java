@@ -67,7 +67,7 @@ public class LowerCost {
 
         for (int i = 0; i < this.numberOfOrigins; i++) {
             for (int j = 0; j < this.numberOfDestinations; j++) {
-                if (this.originCapacity[i] != 0 && this.destinationDemand[j] != 0) {
+                if (this.originCapacity[i] != 0 && this.destinationDemand[j] != 0 && this.resultMatrix[i][j] == -1) {
                     if (isFirst) {
                         value = this.costMatrix[i][j];
                         index[0] = i;
@@ -86,57 +86,63 @@ public class LowerCost {
         return index;
     }
 
+    public void showInfo(boolean initial) {
+        String print = "";
+        if (initial) {
+            print += "Matriz de custos: \n";
+            for (int i = 0; i < this.costMatrix.length; i++) {
+                print += Arrays.toString(this.costMatrix[i]) + "\n";
+            }
+
+            print += "\nCapacidade das origens: \n" + Arrays.toString(this.originCapacity);
+            print += "\n\nDemanda dos destinos: \n" + Arrays.toString(this.destinationDemand) + "\n";
+        } else {
+            print += "Matriz de resultado: \n";
+            for (int i = 0; i < this.resultMatrix.length; i++) {
+                print += Arrays.toString(this.resultMatrix[i]) + "\n";
+            }
+        }
+        System.out.println(print);
+    }
+
     public void solve() {
+        showInfo(true);
         for (int i = 0; i < this.numberOfOrigins; i++) {
             for (int j = 0; j < this.numberOfDestinations; j++) {
                 int[] index = getMinCost();
-                if (originCapacity[index[0]] >= destinationDemand[index[1]]) {
-                    this.resultMatrix[i][j] = destinationDemand[index[1]];
-                    originCapacity[index[0]] -= destinationDemand[index[1]];
-                    destinationDemand[index[1]] = 0;
-                } else if (originCapacity[index[0]] < destinationDemand[index[1]]) {
-                    this.resultMatrix[i][j] = destinationDemand[index[1]];
-                    destinationDemand[index[1]] -= originCapacity[index[0]];
-                    originCapacity[index[0]] = 0;
+                if (this.originCapacity[index[0]] >= this.destinationDemand[index[1]]) {
+                    this.resultMatrix[index[0]][index[1]] = this.destinationDemand[index[1]];
+                    this.originCapacity[index[0]] -= this.destinationDemand[index[1]];
+                    this.destinationDemand[index[1]] = 0;
+                } else if (this.originCapacity[index[0]] < this.destinationDemand[index[1]]) {
+                    this.resultMatrix[index[0]][index[1]] = this.originCapacity[index[0]];
+                    this.destinationDemand[index[1]] -= this.originCapacity[index[0]];
+                    this.originCapacity[index[0]] = 0;
                 }
 
-                if (originCapacity[index[0]] == 0 && destinationDemand[index[1]] == 0) {
+                if (this.originCapacity[index[0]] == 0 && this.destinationDemand[index[1]] == 0) {
                     for (int k = 0; k < this.resultMatrix[0].length; k++)
                         if (k != index[1])
-                            this.resultMatrix[index[0]][k] = 0;
-                } else if (originCapacity[index[0]] == 0 && destinationDemand[index[1]] != 0) {
+                            if (this.resultMatrix[index[0]][k] == -1)
+                                this.resultMatrix[index[0]][k] = 0;
+                } else if (this.originCapacity[index[0]] == 0 && this.destinationDemand[index[1]] != 0) {
                     for (int k = 0; k < this.resultMatrix[0].length; k++)
                         if (k != index[1])
-                            this.resultMatrix[index[0]][k] = 0;
-                } else if (originCapacity[index[0]] != 0 && destinationDemand[index[1]] == 0) {
+                            if (this.resultMatrix[index[0]][k] == -1)
+                                this.resultMatrix[index[0]][k] = 0;
+                } else if (this.originCapacity[index[0]] != 0 && this.destinationDemand[index[1]] == 0) {
                     for (int k = 0; k < this.resultMatrix.length; k++)
                         if (k != index[0])
-                            this.resultMatrix[k][index[1]] = 0;
+                            if (this.resultMatrix[k][index[1]] == -1)
+                                this.resultMatrix[k][index[1]] = 0;
                 }
             }
         }
-        System.out.println(this);
-    }
-
-    @Override
-    public String toString() {
-        String print = "";
-
-        for (int i = 0; i < this.costMatrix.length; i++) {
-            print += Arrays.toString(this.costMatrix[i]) + "\n";
-        }
-
-        print += "\n" + Arrays.toString(this.originCapacity);
-        print += "\n" + Arrays.toString(this.destinationDemand) + "\n\n";
-
-        for (int i = 0; i < this.resultMatrix.length; i++) {
-            print += Arrays.toString(this.resultMatrix[i]) + "\n";
-        }
-        return print;
+        showInfo(false);
     }
 
     public static void main(String[] args) {
-        LowerCost lowerCost = new LowerCost("input.txt");
+        LowerCost lowerCost = new LowerCost(args[0]);
         lowerCost.solve();
     }
 }
